@@ -1,0 +1,58 @@
+package com.booker.payment_service.controller;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.booker.payment_service.dto.PaymentRequestDto;
+import com.booker.payment_service.dto.PaymentResponseDto;
+import com.booker.payment_service.dto.mapper.PaymentMapper;
+import com.booker.payment_service.service.IPaymentService;
+
+@RestController
+@RequestMapping("/payment")
+public class PaymentController {
+	@Autowired
+	private IPaymentService paymentService;
+
+	@PostMapping(value = "/initiate", consumes = "application/json")
+	public ResponseEntity<PaymentResponseDto> initiatePayment(@RequestBody PaymentRequestDto dto,
+			@RequestHeader("X-UserId") String userid) {
+		return ResponseEntity.ok()
+				.body(PaymentMapper.toDto(paymentService.initiatePayment(PaymentMapper.toEntity(dto), userid)));
+	}
+
+	@PutMapping(value = "/update/{id}")
+	public ResponseEntity<PaymentResponseDto> updatePaymentStatus(@PathVariable Long id, @RequestParam String status) {
+		return ResponseEntity.ok().body(PaymentMapper.toDto(paymentService.updatePaymentStatus(id, status)));
+	}
+
+	@GetMapping(value = "/{id}", produces = "application/json")
+	public ResponseEntity<PaymentResponseDto> getPaymentById(@PathVariable Long id) {
+		return ResponseEntity.ok().body(PaymentMapper.toDto(paymentService.getPaymentById(id)));
+	}
+
+	@GetMapping(value = "/user/{userId}", produces = "application/json")
+	public ResponseEntity<List<PaymentResponseDto>> getPaymentsByUser(@PathVariable Long userId) {
+		return ResponseEntity.ok().body(paymentService.getPaymentsByUser(userId).stream()
+				.filter(Objects::nonNull).map(e -> PaymentMapper.toDto(e)).collect(Collectors.toList()));
+	}
+	
+	@GetMapping(value = "/{userId}", produces = "application/json")
+	public List<PaymentResponseDto> getFeignPaymentByUser(@PathVariable Long userId) {
+		return paymentService.getPaymentsByUser(userId).stream()
+				.filter(Objects::nonNull).map(e -> PaymentMapper.toDto(e)).collect(Collectors.toList());
+	}
+}

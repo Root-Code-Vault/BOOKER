@@ -1,0 +1,44 @@
+package com.booker.gateway.config;
+
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import com.booker.gateway_service.filter.JwtAuthenticationFilter;
+
+
+
+@Configuration
+public class GatewayRoutes {
+	private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+	public GatewayRoutes(JwtAuthenticationFilter jwtAuthenticationFilter) {
+		this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+	}
+
+	@Bean
+	public RouteLocator customRoutes(RouteLocatorBuilder builder) {
+		return builder.routes().route("auth_route",
+				r -> r.path("/auth/**")
+						.filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+						.uri("lb://AUTH-SERVICE"))
+				.route("product_route",
+						r -> r.path("/product/**").filters(
+								f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+								.uri("lb://PRODUCT-SERVICE"))
+				.route("payment_route",
+						r -> r.path("/payment/**").filters(
+								f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+								.uri("lb://PAYMENT-SERVICE"))
+				.route("seat_route",
+						r -> r.path("/seat/**").filters(
+								f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+								.uri("lb://SEAT-SERVICE"))
+				.route("booking_route",
+						r -> r.path("/booking/**").filters(
+								f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+								.uri("lb://BOOKING-SERVICE"))
+				.build();
+	}
+}

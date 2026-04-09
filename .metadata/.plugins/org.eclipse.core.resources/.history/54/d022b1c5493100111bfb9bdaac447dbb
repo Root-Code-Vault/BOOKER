@@ -1,0 +1,72 @@
+package com.booker.booking_service.service.impl;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.booker.booking_service.client.IPaymentClient;
+import com.booker.booking_service.client.IProductClient;
+import com.booker.booking_service.client.ISeatClient;
+import com.booker.booking_service.dto.BookingDetailsResponseDto;
+import com.booker.booking_service.dto.BookingRequestDto;
+import com.booker.booking_service.dto.BookingResponseDto;
+import com.booker.booking_service.dto.PaymentResponseDto;
+import com.booker.booking_service.dto.ProductResponseDto;
+import com.booker.booking_service.dto.SeatResponseDto;
+import com.booker.booking_service.dto.mapper.BookingMapper;
+import com.booker.booking_service.entity.Booking;
+import com.booker.booking_service.repository.IBookingRepository;
+import com.booker.booking_service.service.IBookingService;
+import com.booker.booking_service.service.kafka.producer.BookSeatKafkaEventProducer;
+import com.booker.events.BookSeat;
+
+@Service
+public class BookingServiceImpl implements IBookingService {
+
+	@Autowired
+	private IBookingRepository bookingRepository;
+
+	@Autowired
+	private BookSeatKafkaEventProducer seatProducer;
+	
+	@Autowired
+	private IProductClient productClient;
+	
+	@Autowired
+	private ISeatClient seatClient;
+	
+	@Autowired
+	private IPaymentClient paymentClient;
+
+	@Override
+	public BookingResponseDto initiateBooking(BookingRequestDto dto) {
+		Booking booking = BookingMapper.toEntity(dto);
+		booking.setStatus("PENDING");
+		Booking saved = bookingRepository.save(booking);
+
+		BookSeat seat = BookSeat.newBuilder().setSeatId(saved.getSeatId().toString())
+				.setProductId(saved.getProductId().toString()).setBookingId(saved.getId().toString())
+				.setMessage("PENDING").build();
+		seatProducer.produce(saved.getUserId().toString(), seat);
+
+		return BookingMapper.toDto(saved);
+	}
+
+	@Override
+	public List<BookingDetailsResponseDto> getBookingDetails(Long userId) {
+		List<Booking> bookingList = bookingRepository.getByUserId(userId);
+		List<PaymentResponseDto> paymentList = paymentClient.getPaymentsByUser(userId);
+		
+		List<SeatResponseDto> seatList = new ArrayList<SeatResponseDto>();
+		List<ProductResponseDto> productList = new ArrayList<ProductResponseDto>();
+
+		for (BookingDetailsResponseDto eachBooking : bookingList) {
+			eachBooking.getProduct
+		}
+		
+		return null;
+	}
+}

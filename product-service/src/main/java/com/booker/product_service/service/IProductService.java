@@ -1,0 +1,22 @@
+package com.booker.product_service.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.booker.product_service.entity.Product;
+
+@Service
+public interface IProductService {
+
+	List<Product> createProduct(List<Product> entity);
+
+	List<Product> getAllProducts();
+
+	Product getProductById(Long id);
+
+	Product updateProduct(Long id, Product entity);
+
+	void deleteMovie(Long id);
+
+}

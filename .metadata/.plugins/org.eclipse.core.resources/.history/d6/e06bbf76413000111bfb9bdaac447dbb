@@ -1,0 +1,5 @@
+package com.booker.seat_service.service.kafka.producer;
+
+public class BookSeatKafkaEventProducer {
+
+}

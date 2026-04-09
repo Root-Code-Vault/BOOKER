@@ -1,0 +1,5 @@
+package com.booker.booking_service.service.kafka.consumer;
+
+public class BookPaymentKafkaEventConsumer {
+
+}

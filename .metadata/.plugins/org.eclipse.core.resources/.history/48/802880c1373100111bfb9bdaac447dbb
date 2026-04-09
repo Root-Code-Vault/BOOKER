@@ -1,0 +1,31 @@
+package com.booker.booking_service.config;
+
+import org.springframework.cache.CacheManager;
+import org.springframework.cloud.openfeign.CachingCapability;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import com.booker.booking_service.client.IPaymentClient;
+
+import feign.Feign;
+import feign.Logger;
+
+@Configuration
+public class FeignConfig {
+
+	private final CacheManager cacheManager;
+
+	public FeignConfig(CacheManager cacheManager) {
+		this.cacheManager = cacheManager;
+	}
+
+	@Bean
+	public Logger.Level feignLoggerLevel() {
+		return Logger.Level.FULL;
+	}
+
+	@Bean
+	public Feign.Builder paymentClient() {
+		return Feign.builder().addCapability(new CachingCapability(cacheManager.getCache("products")));
+	}
+}

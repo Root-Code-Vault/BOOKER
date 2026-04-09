@@ -1,0 +1,80 @@
+package com.booker.seat_service.service.kafka.consumer;
+
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Service;
+
+import com.booker.events.BookSeat;
+import com.booker.seat_service.entity.Seat;
+import com.booker.seat_service.exception.SeatNotFoundException;
+import com.booker.seat_service.repository.ISeatRepository;
+import com.booker.seat_service.service.kafka.producer.BookSeatKafkaEventProducer;
+
+@Service
+public class BookSeatKafkaEventConsumer {
+
+	@Autowired
+	private ISeatRepository seatRepository;
+
+	@Autowired
+	private BookSeatKafkaEventProducer producer;
+
+	@KafkaListener(topics = "booking-seat-event")
+	public void consume(ConsumerRecord<String, BookSeat> event) {
+		System.out.println("!!! SEAT SERVICE RECEIVED EVENT: " + event.value());
+
+		Seat seat = seatRepository.findById(Long.valueOf(event.value().getSeatId().toString())).get();
+
+		if (seat != null) {
+			if ("PENDING".equalsIgnoreCase(event.value().getMessage().toString())) {
+				if ("OPEN".equalsIgnoreCase(seat.getStatus())) {
+					seat.setStatus("PENDING");
+					seatRepository.save(seat);
+
+					event.value().setMessage("PENDING");
+					BookSeat bookSeat = event.value();
+					producer.produce(event.key(), bookSeat);
+
+				} else {
+					event.value().setMessage("FAILED");
+					BookSeat bookSeat = event.value();
+					producer.produce(event.key(), bookSeat);
+				}
+			} else if ("CONFIRMED".equalsIgnoreCase(event.value().getMessage().toString())) {
+				if ("PENDING".equalsIgnoreCase(seat.getStatus())) {
+					seat.setStatus("CONFIRMED");
+					seatRepository.save(seat);
+				} else {
+					event.value().setMessage("FAILED");
+					BookSeat bookSeat = event.value();
+					producer.produce(event.key(), bookSeat);
+				}
+			} else if ("FAILED".equalsIgnoreCase(event.value().getMessage().toString())) {
+				if ("PENDING".equalsIgnoreCase(seat.getStatus())) {
+					seat.setStatus("OPEN");
+					seatRepository.save(seat);
+				} else {
+					event.value().setMessage("FAILED");
+					BookSeat bookSeat = event.value();
+					producer.produce(event.key(), bookSeat);
+				}
+			}
+
+			if (("PENDING").equalsIgnoreCase(event.value().getMessage().toString())) {
+				if (("OPEN").equalsIgnoreCase(seat.getStatus())) {
+					seat.setStatus("PENDING");
+					seatRepository.save(seat);
+
+					event.value().setMessage("PENDING");
+					BookSeat bookSeat = event.value();
+					producer.produce(event.key(), bookSeat);
+				}
+			}
+
+		} else {
+			throw new SeatNotFoundException(Long.valueOf(event.value().getSeatId().toString()));
+		}
+
+	}
+}

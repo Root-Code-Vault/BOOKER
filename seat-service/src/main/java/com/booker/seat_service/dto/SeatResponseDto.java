@@ -1,0 +1,40 @@
+package com.booker.seat_service.dto;
+
+public class SeatResponseDto {
+	private String id;
+	private String seatNumber;
+	private String productId;
+	private String status;
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getSeatNumber() {
+		return seatNumber;
+	}
+
+	public void setSeatNumber(String seatNumber) {
+		this.seatNumber = seatNumber;
+	}
+
+	public String getProductId() {
+		return productId;
+	}
+
+	public void setProductId(String productId) {
+		this.productId = productId;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+}

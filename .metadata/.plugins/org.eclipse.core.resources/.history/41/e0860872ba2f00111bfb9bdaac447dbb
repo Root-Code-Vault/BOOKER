@@ -1,0 +1,11 @@
+package com.booker.booking_service.exception;
+
+import java.util.Map;
+
+public class SeatAlreadyBookedException extends RuntimeException {
+
+	public SeatAlreadyBookedException(Map<String, String> message) {
+		super(message);
+	}
+
+}

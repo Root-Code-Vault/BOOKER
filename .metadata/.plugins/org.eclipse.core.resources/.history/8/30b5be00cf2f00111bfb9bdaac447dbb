@@ -1,0 +1,5 @@
+package com.booker.payment_service.service.kafka.producer;
+
+public class BookPaymentKafkaEventProducer {
+
+}

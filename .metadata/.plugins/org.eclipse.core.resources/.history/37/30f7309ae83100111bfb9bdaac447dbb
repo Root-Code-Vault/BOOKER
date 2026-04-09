@@ -1,0 +1,99 @@
+spring:
+  application:
+    name: booking-service
+#  config:
+#    import: optional:configserver:http://localhost:9092
+#  profiles:
+#    active: default  # Replace 'default' with your actual profile name if needed
+  datasource:
+    url: jdbc:postgresql://localhost:5004/bookingdb
+    username: admin
+    password: password
+    driver-class-name: org.postgresql.Driver
+  kafka:
+    schema:
+      registry:
+        url: "http://localhost:8081"
+    consumer:
+      group-id: booking-service-4
+      auto-offset-reset: "earliest"
+      key-deserializer: "org.apache.kafka.common.serialization.StringDeserializer"
+      value-deserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer"
+      properties:
+        specific:
+          avro:
+            reader: "true"
+        schema:
+          registry:
+            url: "http://localhost:8081"
+    producer:
+      key-serializer: "org.apache.kafka.common.serialization.StringSerializer"
+      value-serializer: "io.confluent.kafka.serializers.KafkaAvroSerializer"
+      properties:
+        schema:
+          registry:
+            url: "http://localhost:8081"  # or schema-registry:8081 if inside Docker
+  
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 1
+  cache:
+    type: redis
+
+logging:
+  level:
+    root: info
+    org.springframework.web: DEBUG
+    org.springframework.web.servlet.DispatcherServlet: DEBUG
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
+    org:
+      springframework:
+        jdbc: DEBUG
+        orm: DEBUG
+
+server:
+  port: 9097
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:9090/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"  # Or "health,info,caches,circuitbreakers"
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      userService:
+        registerHealthIndicator: true
+        eventConsumerBufferSize: 10
+        failureRateThreshold: 50
+        minimumNumberOfCalls: 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowSize: 10
+        slidingWindowType: COUNT_BASED

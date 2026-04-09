@@ -1,0 +1,56 @@
+package com.booker.payment_service.service.kafka.consumer;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Service;
+
+import com.booker.events.BookPayment;
+import com.booker.payment_service.entity.Payment;
+import com.booker.payment_service.repository.IPaymentRepository;
+import com.booker.payment_service.service.feignClient.IProductServiceClient;
+import com.booker.payment_service.service.kafka.producer.BookPaymentKafkaEventProducer;
+
+@Service
+public class BookPaymentKafkaEventConsumer {
+	
+	@Autowired
+	private IPaymentRepository paymentRepository;
+	
+	@Autowired
+	private IProductServiceClient productClient;
+	
+	@Autowired
+	private BookPaymentKafkaEventProducer producer;
+	
+	@KafkaListener(topics = "booking-payment-event")
+	public void consume(ConsumerRecord<String, BookPayment> event) {
+		System.out.println("!!! PAYMENT SERVICE RECEIVED EVENT: " + event.value());
+		
+		if ("START_PAYMENT".equalsIgnoreCase(event.value().getMessage().toString())) {
+			Payment payment = new Payment();
+			payment.setAmount(Double.valueOf(productClient.getProduct(event.value().getProductId().toString()).getPrice()));
+			payment.setCreatedAt(LocalDateTime.now());
+			payment.setProductId(Long.valueOf(event.value().getProductId().toString()));
+			payment.setStatus("PENDING");
+			payment.setTransactionId(UUID.randomUUID().toString());
+			payment.setUserId(Long.valueOf(event.key()));
+			payment = paymentRepository.save(payment);
+			
+			if (Math.random() > 0.2) {
+				event.value().setMessage("CONFIRMED");
+				payment.setStatus("CONFIRMED");
+				paymentRepository.save(payment);
+				producer.produce(event.key(), event.value());
+			} else {
+				event.value().setMessage("FAILED");
+				payment.setStatus("FAILED");
+				paymentRepository.save(payment);
+				producer.produce(event.key(), event.value());
+			}
+		}
+	}
+}

@@ -1,0 +1,28 @@
+package com.booker.booking_service.client;
+
+import java.util.List;
+
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+
+import com.booker.booking_service.dto.PaymentRequestDto;
+import com.booker.booking_service.dto.PaymentResponseDto;
+
+@FeignClient(
+        name = "PAYMENT-SERVICE",
+        contextId = "paymentClient",
+        configuration = com.booker.booking_service.config.FeignConfig.class
+)
+public interface IPaymentClient {
+
+    @PostMapping("/payment/initiate")
+    PaymentResponseDto initiatePayment(@RequestBody PaymentRequestDto dto);
+    
+    @GetMapping("/payment/user/{userId}")
+	public PaymentResponseDto getPaymentsByUser(@PathVariable Long userId);
+}

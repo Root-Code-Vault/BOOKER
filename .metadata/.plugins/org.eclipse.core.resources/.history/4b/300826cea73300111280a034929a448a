@@ -1,0 +1,26 @@
+logging:
+  level:
+    root: error
+
+spring:
+  application:
+    name: gateway
+  
+#  config:
+#    import: optional:configserver:http://localhost:9092
+#  profiles:
+#    active:
+  cloud:
+    gateway:
+      default-filters:
+      - JwtAuthenticationFilter
+
+server:
+  port: 9091
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:9090/eureka/
+    register-with-eureka: true
+    fetch-registry: true

@@ -1,0 +1,24 @@
+package com.booker.payment_service.service.kafka.producer;
+
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+
+import com.booker.events.PaymentFailed;
+import com.booker.events.PaymentSuccess;
+
+@Service
+public class PaymentCancellationEventProducerService {
+	private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    public PaymentCancellationEventProducerService(KafkaTemplate<String, Object> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
+    public void publishPaymentSuccess(PaymentSuccess event) {
+        kafkaTemplate.send("payment-cancel-events", event.getBookingId().toString(), event);
+    }
+
+    public void publishPaymentFailed(PaymentFailed event) {
+        kafkaTemplate.send("payment-cancel-events", event.getBookingId().toString(), event);
+    }
+}

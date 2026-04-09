@@ -1,0 +1,49 @@
+package com.booker.payment_service.service.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.booker.payment_service.entity.Payment;
+import com.booker.payment_service.exception.RecordNotFoundException;
+import com.booker.payment_service.repository.IPaymentRepository;
+import com.booker.payment_service.service.IPaymentService;
+
+@Service
+public class PaymentServiceImpl implements IPaymentService {
+	@Autowired
+	private IPaymentRepository paymentRepository;
+
+	@Override
+	public Payment initiatePayment(Payment entity, String userid) {
+		if (entity.getUserId() == null) {
+			entity.setUserId(Long.valueOf(userid));
+			return paymentRepository.save(entity);
+		} else {
+			return paymentRepository.save(entity);
+		}
+	}
+
+	@Override
+	public Payment updatePaymentStatus(Long id, String status) {
+		Payment payment = paymentRepository.findById(id)
+				.orElseThrow(() -> new RecordNotFoundException("Payment Record with ID " + id + " not found."));
+		payment.setStatus(status);
+
+		return paymentRepository.save(payment);
+	}
+
+	@Override
+	public Payment getPaymentById(Long id) {
+		return paymentRepository.findById(id)
+				.orElseThrow(() -> new RecordNotFoundException("Payment Record with ID " + id + " not found."));
+	}
+
+	@Override
+	public List<Payment> getPaymentsByUser(Long userId) {
+		return paymentRepository.findAllByUserId(userId);
+			
+	}
+
+}

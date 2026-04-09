@@ -1,0 +1,52 @@
+package com.booker.booking_service.service.impl;
+
+import java.util.UUID;
+
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.booker.booking_service.dto.BookingRequestDto;
+import com.booker.booking_service.dto.BookingResponseDto;
+import com.booker.booking_service.dto.mapper.BookingMapper;
+import com.booker.booking_service.entity.Booking;
+import com.booker.booking_service.exception.SeatNotReservedException;
+import com.booker.booking_service.repository.IBookingRepository;
+import com.booker.booking_service.service.IBookingService;
+import com.booker.booking_service.service.kafka.producer.BookSeatKafkaEventProducer;
+import com.booker.booking_service.service.kafka.producer.BookingEventCancelProducerService;
+import com.booker.booking_service.service.kafka.producer.BookingEventProducerService;
+import com.booker.events.BookSeat;
+import com.booker.events.BookingCancelInitiated;
+import com.booker.events.BookingInitiated;
+
+@Service
+public class BookingServiceImpl implements IBookingService {
+
+	/*
+	 * @Autowired private IProductClient productClient;
+	 * 
+	 * @Autowired private ISeatClient seatClient;
+	 * 
+	 * @Autowired private IPaymentClient paymentClient;
+	 */
+	@Autowired
+	private IBookingRepository bookingRepository;
+
+	@Autowired
+	private BookSeatKafkaEventProducer seatProducer;
+
+	@Override
+	public BookingResponseDto initiateBooking(BookingRequestDto dto) {
+		Booking booking = BookingMapper.toEntity(dto);
+		booking.setStatus("PENDING");
+		Booking saved = bookingRepository.save(booking);
+
+		BookSeat seat = BookSeat.newBuilder().setSeatId(saved.getSeatId().toString())
+				.setProductId(saved.getProductId().toString()).setBookingId(saved.getId().toString())
+				.setMessage("PENDING").build();
+		seatProducer.produce(saved.getUserId().toString(), seat);
+
+		return BookingMapper.toDto(saved);
+	}
+}

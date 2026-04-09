@@ -1,0 +1,5 @@
+package com.booker.booking_service.dto;
+
+public class BookingDetailsResponseDto {
+
+}

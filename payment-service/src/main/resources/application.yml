@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: payment-service
+
+  datasource:
+    url: jdbc:postgresql://booker-payment-db:5432/booker-payment-db
+    username: admin
+    password: password
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  kafka:
+    bootstrap-servers: booker-kafka:29092
+    schema:
+      registry:
+        url: "http://booker-schema-registry:8081"
+    consumer:
+      group-id: payment-service-4
+      auto-offset-reset: "earliest"
+      key-deserializer: "org.apache.kafka.common.serialization.StringDeserializer"
+      value-deserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer"
+      properties:
+        specific:
+          avro:
+            reader: "true"
+        schema:
+          registry:
+            url: "http://booker-schema-registry:8081"
+    producer:
+      key-serializer: "org.apache.kafka.common.serialization.StringSerializer"
+      value-serializer: "io.confluent.kafka.serializers.KafkaAvroSerializer"
+      properties:
+        schema:
+          registry:
+            url: "http://booker-schema-registry:8081"
+
+logging:
+  level:
+    root: info
+    org.springframework.web: DEBUG
+    org.springframework.web.servlet.DispatcherServlet: DEBUG
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
+    org.springframework.web.jdbc: DEBUG
+    org.springframework.orm: DEBUG
+
+server:
+  port: 9095
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:9090/eureka/
+    register-with-eureka: true
+    fetch-registry: true

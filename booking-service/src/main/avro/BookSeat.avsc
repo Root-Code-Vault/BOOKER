@@ -1,0 +1,11 @@
+{
+  "type": "record",
+  "name": "BookSeat",
+  "namespace": "com.booker.events",
+  "fields": [
+    { "name": "seatId", "type": "string" },
+    { "name": "productId", "type": "string"},
+    { "name": "bookingId", "type": "string"},
+    { "name": "message", "type": "string"}
+  ]
+}

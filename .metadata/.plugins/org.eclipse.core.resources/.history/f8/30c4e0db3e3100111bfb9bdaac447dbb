@@ -1,0 +1,14 @@
+package com.booker.booking_service.service;
+
+import org.springframework.stereotype.Service;
+
+import com.booker.booking_service.dto.BookingRequestDto;
+import com.booker.booking_service.dto.BookingResponseDto;
+import com.booker.booking_service.entity.Booking;
+
+@Service
+public interface IBookingService {
+	public BookingResponseDto initiateBooking(BookingRequestDto dto);
+
+	// public Booking cancelBooking(Long id, Long userId);
+}

@@ -1,0 +1,20 @@
+package com.booker.seat_service.service.kafka.producer;
+
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+
+import com.booker.events.BookSeat;
+
+@Service
+public class BookPaymentKafkaEventProducer {
+
+	private final KafkaTemplate<String, BookSeat> kafkaTemplate;
+
+	public BookPaymentKafkaEventProducer(KafkaTemplate<String, BookSeat> kafkaTemplate) {
+		this.kafkaTemplate = kafkaTemplate;
+	}
+
+	public void produce(String key, BookSeat event) {
+		kafkaTemplate.send("booking-payment-event", key, event);
+	}
+}

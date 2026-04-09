@@ -1,0 +1,25 @@
+package com.booker.booking_service.client;
+
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
+import com.booker.booking_service.dto.ProductResponseDto;
+
+@FeignClient(
+        name = "PRODUCT-SERVICE",
+        contextId = "productClient",
+        configuration = com.booker.booking_service.config.FeignConfig.class
+)
+public interface IProductClient {
+
+    @GetMapping("/product/{id}")
+    @Cacheable(cacheNames = "products", key = "#productId")
+    ProductResponseDto getProduct(@PathVariable("id") Long productId);
+    
+    @GetMapping("/product/{id}")
+    @Cacheable(cacheNames = "products", key = "#productId")
+	public ResponseEntity<ProductResponseDto> getProductById(@PathVariable Long id);
+}

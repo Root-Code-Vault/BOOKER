@@ -1,0 +1,54 @@
+package com.booker.seat_service.service.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.booker.seat_service.entity.Seat;
+import com.booker.seat_service.exception.SeatAlreadyBookedException;
+import com.booker.seat_service.exception.SeatNotFoundException;
+import com.booker.seat_service.repository.ISeatRepository;
+import com.booker.seat_service.service.ISeatService;
+
+@Service
+public class SeatServiceImpl implements ISeatService {
+
+	@Autowired
+	private ISeatRepository seatRepository;
+
+	@Override
+	public List<Seat> saveSeat(List<Seat> seat) {
+		return seatRepository.saveAll(seat);
+	}
+
+	@Override
+	public List<Seat> getSeatsByProduct(Long productId) {
+		return seatRepository.findAll().stream().filter(seat -> seat.getProductId().equals(productId)).toList();
+	}
+
+	@Override
+	public Seat bookSeat(Long seatId) {
+		Seat seat = seatRepository.findById(seatId).orElseThrow(() -> new SeatNotFoundException(seatId));
+
+		if ("CONFIRMED".equalsIgnoreCase(seat.getStatus())) {
+			throw new SeatAlreadyBookedException(seatId);
+		}
+
+		seat.setStatus("CONFIRMED");
+		return seatRepository.save(seat);
+	}
+
+	@Override
+	public Seat releaseSeat(Long seatId) {
+		Seat seat = seatRepository.findById(seatId).orElseThrow(() -> new SeatNotFoundException(seatId));
+
+		seat.setStatus("OPEN");
+		return seatRepository.save(seat);
+	}
+
+	@Override
+	public Seat getSeatById(Long id) {
+		return seatRepository.findById(id).orElseThrow(()->new SeatNotFoundException(id));
+	}
+}

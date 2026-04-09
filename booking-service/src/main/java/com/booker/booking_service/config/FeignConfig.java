@@ -1,0 +1,23 @@
+package com.booker.booking_service.config;
+
+import org.springframework.cache.interceptor.CacheInterceptor;
+import org.springframework.cloud.openfeign.CachingCapability;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import feign.Capability;
+import feign.Logger;
+
+@Configuration
+public class FeignConfig {
+
+	@Bean
+	Logger.Level feignLoggerLevel() {
+		return Logger.Level.FULL;
+	}
+
+	@Bean
+	Capability cacheCapability(CacheInterceptor cacheInterceptor) {
+		return new CachingCapability(cacheInterceptor);
+	}
+}

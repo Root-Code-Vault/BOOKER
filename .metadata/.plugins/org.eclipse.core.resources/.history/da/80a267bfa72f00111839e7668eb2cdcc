@@ -1,0 +1,17 @@
+package BACKUP;
+
+public class Snippet {
+	{
+	  "type": "record",
+	  "name": "BookingInitiated",
+	  "namespace": "com.booker.events",
+	  "fields": [
+	    { "name": "bookingId", "type": "string" },
+	    { "name": "userId", "type": "string" },
+	    { "name": "seatId", "type": "string" },
+	    { "name": "productId", "type": "string"},
+	    { "name": "timestamp", "type": "string" }
+	  ]
+	}
+}
+

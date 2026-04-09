@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "name": "BookingInitiated",
+  "namespace": "com.booker.events",
+  "fields": [
+    { "name": "bookingId", "type": "string" },
+    { "name": "userId", "type": "string" },
+    { "name": "seatId", "type": "string" },
+    { "name": "productId", "type": "string"},
+    { "name": "paymentId", "type": ["null", "string"], "default": null},
+    { "name": "timestamp", "type": "string" }
+  ]
+}

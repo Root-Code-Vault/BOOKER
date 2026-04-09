@@ -1,0 +1,16 @@
+package com.booker.booking_service.service.kafka.consumer;
+
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Service;
+
+import com.booker.events.BookSeat;
+
+@Service
+public class BookSeatKafkaEventConsumer {
+	
+	@KafkaListener(topics = "book-seat")
+	public ConsumerRecord<String, BookSeat> consume(ConsumerRecord<String, BookSeat> event) {
+		return event;
+	}
+}

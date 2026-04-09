@@ -1,0 +1,22 @@
+package com.booker.seat_service.service.kafka.producer;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+
+import com.booker.events.SeatReserved;
+
+@Service
+public class BookSeatKafkaEventProducer {
+
+	private final KafkaTemplate<String, SeatReserved> kafkaTemplate;
+
+	@Autowired
+	public SeatEventProducerService(KafkaTemplate<String, SeatReserved> kafkaTemplate) {
+		this.kafkaTemplate = kafkaTemplate;
+	}
+
+	public void publishSeatReserved(SeatReserved event) {
+		kafkaTemplate.send("seat-events", event.getBookingId().toString(), event);
+	}
+}

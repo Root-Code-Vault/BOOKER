@@ -1,0 +1,70 @@
+version: "1.0"
+
+services:
+  discovery-server:
+    build: ./discovery-server
+    container_name: discovery-server
+    ports:
+      - "9090:9090"
+    networks:
+      - booker
+
+  gateway:
+    build: ./gateway
+    container_name: gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - discovery-server
+    networks:
+      - booker
+
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    depends_on:
+      - discovery-server
+      - booker-auth-db
+    networks:
+      - booker
+
+  booking-service:
+    build: ./booking-service
+    container_name: booking-service
+    depends_on:
+      - discovery-server
+      - booker-booking-db
+      - booker-kafka
+    networks:
+      - booker
+
+  payment-service:
+    build: ./payment-service
+    container_name: payment-service
+    depends_on:
+      - discovery-server
+      - booker-payment-db
+    networks:
+      - booker
+
+  product-service:
+    build: ./product-service
+    container_name: product-service
+    depends_on:
+      - discovery-server
+      - booker-product-db
+    networks:
+      - booker
+
+  seat-service:
+    build: ./seat-service
+    container_name: seat-service
+    depends_on:
+      - discovery-server
+      - booker-seat-db
+    networks:
+      - booker
+
+networks:
+  booker:
+    driver: bridge

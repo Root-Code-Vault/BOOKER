@@ -1,0 +1,5 @@
+package com.booker.booking_service.exception;
+
+public class SeatAlreadyBookedException extends Exception {
+
+}

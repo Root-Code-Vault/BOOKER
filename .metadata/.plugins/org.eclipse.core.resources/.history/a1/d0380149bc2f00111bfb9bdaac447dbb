@@ -1,0 +1,55 @@
+package com.booker.booking_service.service.kafka.consumer;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Service;
+
+import com.booker.booking_service.entity.Booking;
+import com.booker.booking_service.exception.SeatAlreadyBookedException;
+import com.booker.booking_service.repository.IBookingRepository;
+import com.booker.booking_service.service.kafka.producer.BookPaymentKafkaEventProducer;
+import com.booker.events.BookPayment;
+import com.booker.events.BookSeat;
+
+@Service
+public class BookSeatKafkaEventConsumer {
+
+	@Autowired
+	private BookPaymentKafkaEventProducer producer;
+
+	@Autowired
+	private IBookingRepository bookingRepository;
+
+	@KafkaListener(topics = "booking-seat-event")
+	public void consume(ConsumerRecord<String, BookSeat> event) {
+		if ("PENDING".equalsIgnoreCase(event.value().getMessage().toString())) {
+			// Start Payment
+			BookPayment payment = BookPayment.newBuilder().setBookingId(event.value().getBookingId())
+					.setProductId(event.value().getProductId()).setSeatId(event.value().getSeatId()).build();
+
+			producer.produce(event.key(), payment);
+		} else if ("FAILED".equalsIgnoreCase(event.value().getMessage().toString())) {
+			// throw seat already booked for user key
+			Map<String, String> error = new HashMap<String, String>();
+			error.put("userId", event.key());
+			error.put("seatId", event.value().getSeatId().toString());
+			error.put("productId", event.value().getProductId().toString());
+
+			throw new SeatAlreadyBookedException("SEAT_ALREADY_BOOKED", error);
+		} else if ("CONFIRMED".equalsIgnoreCase(event.value().getMessage().toString())) {
+			// then save the booking status to CONFIRMED
+			Booking booking = bookingRepository.findById(Long.valueOf(event.value().getBookingId().toString()));
+					.ifPresent(booking -> {
+						booking.setStatus("CONFIRMED");
+						bookingRepository.save(booking);
+					});
+
+			bookingRepository.save(null);
+		}
+
+	}
+}

@@ -1,0 +1,115 @@
+package com.booker.booking_service.service.impl;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.booker.booking_service.client.IPaymentClient;
+import com.booker.booking_service.client.IProductClient;
+import com.booker.booking_service.client.ISeatClient;
+import com.booker.booking_service.dto.BookingDetailsResponseDto;
+import com.booker.booking_service.dto.BookingRequestDto;
+import com.booker.booking_service.dto.BookingResponseDto;
+import com.booker.booking_service.dto.PaymentResponseDto;
+import com.booker.booking_service.dto.ProductResponseDto;
+import com.booker.booking_service.dto.SeatResponseDto;
+import com.booker.booking_service.dto.mapper.BookingMapper;
+import com.booker.booking_service.entity.Booking;
+import com.booker.booking_service.repository.IBookingRepository;
+import com.booker.booking_service.service.IBookingService;
+import com.booker.booking_service.service.kafka.producer.BookSeatKafkaEventProducer;
+import com.booker.events.BookSeat;
+
+@Service
+public class BookingServiceImpl implements IBookingService {
+
+	@Autowired
+	private IBookingRepository bookingRepository;
+
+	@Autowired
+	private BookSeatKafkaEventProducer seatProducer;
+
+	@Autowired
+	private IProductClient productClient;
+
+	@Autowired
+	private ISeatClient seatClient;
+
+	@Autowired
+	private IPaymentClient paymentClient;
+
+	@Override
+	public BookingResponseDto initiateBooking(BookingRequestDto dto) {
+		Booking booking = BookingMapper.toEntity(dto);
+		booking.setStatus("PENDING");
+		Booking saved = bookingRepository.save(booking);
+
+		BookSeat seat = BookSeat.newBuilder().setSeatId(saved.getSeatId().toString())
+				.setProductId(saved.getProductId().toString()).setBookingId(saved.getId().toString())
+				.setMessage("PENDING").build();
+		seatProducer.produce(saved.getUserId().toString(), seat);
+
+		return BookingMapper.toDto(saved);
+	}
+
+	@Override
+	public List<BookingDetailsResponseDto> getBookingDetails(Long userId) {
+	    List<Booking> bookingList = bookingRepository.getByUserId(userId);
+	    List<PaymentResponseDto> paymentList = paymentClient.getFeignPaymentByUser(userId);
+
+	    Map<Long, PaymentResponseDto> paymentMap = paymentList.stream()
+	    	    .filter(Objects::nonNull) // Safety check
+	    	    .collect(Collectors.toMap(
+	    	        p -> p.getId(), // This must return a Long
+	    	        p -> p, 
+	    	        (existing, replacement) -> existing // Merge function in case of duplicate IDs
+	    	    ));
+
+	    List<BookingDetailsResponseDto> dtoList = new ArrayList<>();
+
+	    for (Booking eachBooking : bookingList) {
+	        BookingDetailsResponseDto dto = new BookingDetailsResponseDto();
+	        
+	        // 1. Get Product and Seat (Fetching inside the loop is fine for now, though slow)
+	        ProductResponseDto product = productClient.getFeignProductById(eachBooking.getProductId());
+	        SeatResponseDto seat = seatClient.getFeignSeatById(eachBooking.getSeatId());
+	        
+	        // 2. Lookup the specific payment belonging to THIS booking
+	        PaymentResponseDto payment = paymentMap.get(eachBooking.getPaymentId());
+
+	        // 3. Map values to DTO
+	        dto.setBookingId(eachBooking.getBookingId().toString());
+	        dto.setStatus(eachBooking.getStatus());
+	        
+	        if (product != null) {
+	            dto.setProductDescription(product.getDescription());
+	            dto.setProductGenre(product.getGenre());
+	            dto.setProductLanguage(product.getLanguage());
+	            dto.setProductShowDate(product.getShowDate());
+	            dto.setProductShowTime(product.getShowTime());
+	            dto.setProductTitle(product.getTitle());
+	            dto.setProductVenue(product.getVenue());
+	        }
+	        
+	        if (seat != null) {
+	            dto.setSeatNumber(seat.getSeatNumber());
+	        }
+
+	        if (payment != null) {
+	            dto.setTicketCost(payment.getAmount());
+	            dto.setTransactionId(payment.getTransactionId());
+	            dto.setTransactionTime(payment.getCreatedAt());
+	        }
+
+	        dtoList.add(dto);
+	    }
+
+	    return dtoList;
+	}
+}

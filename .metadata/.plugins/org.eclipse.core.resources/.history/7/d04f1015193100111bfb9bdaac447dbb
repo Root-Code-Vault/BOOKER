@@ -1,0 +1,5 @@
+package com.booker.auth_service.config;
+
+public class RedisConfig {
+
+}

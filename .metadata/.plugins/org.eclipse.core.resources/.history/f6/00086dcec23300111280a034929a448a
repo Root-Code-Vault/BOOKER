@@ -1,0 +1,11 @@
+eureka:
+  instance:
+    hostname: discovery-server
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://discovery-server:9090/eureka/
+
+server:
+  port: 9090
