@@ -1,0 +1,42 @@
+server:
+  port: 9091
+
+spring:
+  application:
+    name: config-server-service
+  
+  profiles:
+    active: dev
+
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/Root-Code-Vault/BOOKER-CONFIG
+          clone-on-start: true
+          default-label: main
+          search-paths: /
+
+---
+# --- DEVELOPMENT PROFILE ---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:9090/eureka/
+
+---
+# --- PRODUCTION PROFILE (DOCKER) ---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server-service:9090/eureka/

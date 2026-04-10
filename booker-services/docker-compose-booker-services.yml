@@ -1,70 +1,129 @@
-version: "1.0"
-
 services:
-  discovery-server:
-    build: ./discovery-server
-    container_name: discovery-server
+  config-server-service:
+    build: ../config-server-service
+    container_name: config-server-service
+    ports:
+      - "9091:9091"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    networks:
+      - booker-network
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:9091/actuator/health"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+
+  discovery-server-service:
+    build: ../discovery-server-service
+    container_name: discovery-server-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - CONFIG_SERVER_URL=http://config-server-service:9091
     ports:
       - "9090:9090"
-    networks:
-      - booker
-
-  gateway:
-    build: ./gateway
-    container_name: gateway
-    ports:
-      - "8080:8080"
     depends_on:
-      - discovery-server
+      config-server-service:
+        condition: service_started
     networks:
-      - booker
+      - booker-network
+
+  gateway-service:
+    build: ../gateway-service
+    container_name: gateway-service
+    ports:
+      - "9098:9098"
+    depends_on:
+      config-server-service:
+        condition: service_started
+      discovery-server-service:
+        condition: service_started
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - CONFIG_SERVER_URL=http://config-server-service:9091
+    networks:
+      - booker-network
 
   auth-service:
-    build: ./auth-service
+    build: ../auth-service
     container_name: auth-service
     depends_on:
-      - discovery-server
-      - booker-auth-db
+      config-server-service:
+        condition: service_started
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - CONFIG_SERVER_URL=http://config-server-service:9091
+      - DB_USERNAME=admin
+      - DB_PASSWORD=password
+    ports:
+      - "9093:9093"
     networks:
-      - booker
-
-  booking-service:
-    build: ./booking-service
-    container_name: booking-service
-    depends_on:
-      - discovery-server
-      - booker-booking-db
-      - booker-kafka
-    networks:
-      - booker
-
-  payment-service:
-    build: ./payment-service
-    container_name: payment-service
-    depends_on:
-      - discovery-server
-      - booker-payment-db
-    networks:
-      - booker
+      - booker-network
 
   product-service:
-    build: ./product-service
+    build: ../product-service
     container_name: product-service
     depends_on:
-      - discovery-server
-      - booker-product-db
+      config-server-service:
+        condition: service_started
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - CONFIG_SERVER_URL=http://config-server-service:9091
+      - DB_USERNAME=admin
+      - DB_PASSWORD=password
+    ports:
+      - "9094:9094"
     networks:
-      - booker
+      - booker-network
+
+  booking-service:
+    build: ../booking-service
+    container_name: booking-service
+    depends_on:
+      config-server-service:
+        condition: service_started
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - CONFIG_SERVER_URL=http://config-server-service:9091
+      - DB_USERNAME=admin
+      - DB_PASSWORD=password
+    ports:
+      - "9095:9095"
+    networks:
+      - booker-network
+
+  payment-service:
+    build: ../payment-service
+    container_name: payment-service
+    depends_on:
+      config-server-service:
+        condition: service_started
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - CONFIG_SERVER_URL=http://config-server-service:9091
+      - DB_USERNAME=admin
+      - DB_PASSWORD=password
+    ports:
+      - "9096:9096"
+    networks:
+      - booker-network
 
   seat-service:
-    build: ./seat-service
+    build: ../seat-service
     container_name: seat-service
     depends_on:
-      - discovery-server
-      - booker-seat-db
+      config-server-service:
+        condition: service_started
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - CONFIG_SERVER_URL=http://config-server-service:9091
+      - DB_USERNAME=admin
+      - DB_PASSWORD=password
+    ports:
+      - "9097:9097"
     networks:
-      - booker
+      - booker-network
 
 networks:
-  booker:
-    driver: bridge
+  booker-network:
+    external: true

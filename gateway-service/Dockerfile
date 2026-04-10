@@ -2,8 +2,8 @@ FROM eclipse-temurin:21-jdk-alpine
 
 WORKDIR /app
 
-COPY target/gateway-0.0.1-SNAPSHOT.jar /app/gateway-0.0.1-SNAPSHOT.jar
+COPY target/gateway-service-0.0.1-SNAPSHOT.jar /app/gateway-service-0.0.1-SNAPSHOT.jar
 
-EXPOSE 8080
+EXPOSE 9098
 
-ENTRYPOINT ["java", "-jar", "gateway-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "-jar", "gateway-service-0.0.1-SNAPSHOT.jar"]

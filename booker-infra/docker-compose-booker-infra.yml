@@ -7,10 +7,16 @@ services:
       POSTGRES_DB: booker-auth-db
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5000:5432"
     volumes:
-      - ./data/auth:/var/lib/postgres/data
+      - ./data/auth:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d booker-auth-db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - booker-network
 
@@ -21,10 +27,16 @@ services:
       POSTGRES_DB: booker-product-db
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5001:5432"
     volumes:
-      - ./data/product:/var/lib/postgres/data
+      - ./data/product:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d booker-product-db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - booker-network
 
@@ -35,10 +47,16 @@ services:
       POSTGRES_DB: booker-payment-db
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5002:5432"
     volumes:
-      - ./data/payment:/var/lib/postgres/data
+      - ./data/payment:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d booker-payment-db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - booker-network
 
@@ -49,10 +67,16 @@ services:
       POSTGRES_DB: booker-seat-db
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5003:5432"
     volumes:
-      - ./data/seat:/var/lib/postgres/data
+      - ./data/seat:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d booker-seat-db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - booker-network
 
@@ -63,10 +87,16 @@ services:
       POSTGRES_DB: booker-booking-db
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5004:5432"
     volumes:
-      - ./data/booking:/var/lib/postgres/data
+      - ./data/booking:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d booker-booking-db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - booker-network
 
@@ -130,7 +160,7 @@ services:
     depends_on:
       - kafka
     ports:
-      - "8080:9000" # host 8080 → container 9000
+      - "8080:9000"
     environment:
       KAFKA_BROKERCONNECT: kafka:29092
       SCHEMAREGISTRY_CONNECT: http://schema-registry:8081
@@ -139,4 +169,5 @@ services:
 
 networks:
   booker-network:
+    name: booker-network
     driver: bridge
