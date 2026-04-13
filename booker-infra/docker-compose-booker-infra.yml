@@ -100,6 +100,26 @@ services:
     networks:
       - booker-network
 
+  booker-batch-db:
+    image: postgres:latest
+    container_name: booker-batch-db
+    environment:
+      POSTGRES_DB: booker-batch-db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5005:5432"
+    volumes:
+      - ./data/auth:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d booker-auth-db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - booker-network
+
   # --- DATABASE: REDIS CACHE ---
   booker-redis-container:
     image: redis:latest

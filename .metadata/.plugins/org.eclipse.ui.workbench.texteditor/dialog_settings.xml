@@ -8,6 +8,7 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="&lt;dependency&gt;"/>
 			<item value="cache"/>
 			<item value="bookingId"/>
 			<item value="devtools"/>
@@ -15,13 +16,6 @@
 			<item value="{id}"/>
 			<item value="Showtime"/>
 			<item value="showtime"/>
-			<item value="findByEmail"/>
-			<item value="RN"/>
-			<item value="FirstName"/>
-			<item value="firstName"/>
-			<item value="Identifier"/>
-			<item value="identifier"/>
-			<item value="retailnest"/>
 		</list>
 		<list key="replacehistory">
 			<item value="ShowTime"/>
